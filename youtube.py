@@ -206,49 +206,51 @@ def channel_information():
     myconnection = pymysql.connect(host='127.0.0.1',user='root',passwd='Navi@1996',database='youtube_project')
     cursor=myconnection.cursor()
 
-    drop_query='''drop table if exists channels'''
-    cursor.execute(drop_query)
-    myconnection.commit()
+    check_table_query = "SHOW TABLES LIKE 'channels'"
+    cursor.execute(check_table_query)
+    table_exists = cursor.fetchone()
+    
+    if not table_exists:
 
-    create_query='''create table if not exists channels(Channel_Name varchar(100),
-                                                            Channel_Id varchar(100) primary key,
-                                                            Subscribers bigint,
-                                                            Views bigint,
-                                                            Total_Videos int,
-                                                            Channel_Description text,
-                                                            Playlist_Id varchar(80))'''
-    cursor.execute(create_query)
-    myconnection.commit()
+        create_query='''create table if not exists channels(Channel_Name varchar(100),
+                                                                Channel_Id varchar(100) primary key,
+                                                                Subscribers bigint,
+                                                                Views bigint,
+                                                                Total_Videos int,
+                                                                Channel_Description text,
+                                                                Playlist_Id varchar(80))'''
+        cursor.execute(create_query)
+        myconnection.commit()
 
-    ch_list=[]
-    db=client["youtube_project"]
-    collection=db["chennal_details"]
-    for ch_data in collection.find({},{"_id":0,"channel_information":1}):
-        ch_list.append(ch_data["channel_information"])
-        
-    df=pd.DataFrame(ch_list)
-
-    for index,row in df.iterrows():
-            insert_query='''insert into channels(Channel_Name,
-                                                Channel_Id,
-                                                Subscribers,
-                                                Views,
-                                                Total_Videos,
-                                                Channel_Description,
-                                                Playlist_Id)
-                                                
-                                                values(%s,%s,%s,%s,%s,%s,%s)'''
-                                                
-            values=(row["Channel_Name"],
-                row["Channel_Id"],
-                row["Subscribers"],
-                row["Views"],
-                row["Total_Videos"],
-                row["Channel_Description"],
-                row["Playlist_Id"])
+        ch_list=[]
+        db=client["youtube_project"]
+        collection=db["chennal_details"]
+        for ch_data in collection.find({},{"_id":0,"channel_information":1}):
+            ch_list.append(ch_data["channel_information"])
             
-            cursor.execute(insert_query,values)
-            myconnection.commit()
+        df=pd.DataFrame(ch_list)
+
+        for index,row in df.iterrows():
+                insert_query='''insert into channels(Channel_Name,
+                                                    Channel_Id,
+                                                    Subscribers,
+                                                    Views,
+                                                    Total_Videos,
+                                                    Channel_Description,
+                                                    Playlist_Id)
+                                                    
+                                                    values(%s,%s,%s,%s,%s,%s,%s)'''
+                                                    
+                values=(row["Channel_Name"],
+                    row["Channel_Id"],
+                    row["Subscribers"],
+                    row["Views"],
+                    row["Total_Videos"],
+                    row["Channel_Description"],
+                    row["Playlist_Id"])
+                
+                cursor.execute(insert_query,values)
+                myconnection.commit()
             
             
 #CONNECTION TO SQL
@@ -266,52 +268,54 @@ def playlist_information():
     myconnection = pymysql.connect(host='127.0.0.1',user='root',passwd='Navi@1996',database='youtube_project')
     cursor=myconnection.cursor()
     
-    drop_query='''drop table if exists play_list'''
-    cursor.execute(drop_query)
-    myconnection.commit()
-    create_query='''create table if not exists play_list(Playlist_Id varchar(100) primary key,
-                                                            Title varchar(100),
-                                                            Channel_Id varchar(100),
-                                                            Channel_Name varchar(100),
-                                                            PublishedAt DATETIME,
-                                                            Video_Count int)'''
-                                                            
-                                                            
-                                                            
-    cursor.execute(create_query)
-    myconnection.commit()
-    #extract data
-    pl_list=[]
-    db=client["youtube_project"]
-    collection=db["chennal_details"]
-    for pl_data in collection.find({},{"_id":0,"playlist_information":1}):
-        for i in range(len(pl_data["playlist_information"])):
-            pl_list.append(pl_data["playlist_information"][i])
-        
-    df1=pd.DataFrame(pl_list)
-    #insering data into sql
-    for index,row in df1.iterrows():
-            insert_query='''insert into play_list(Playlist_Id,
-                                                Title,
-                                                Channel_Id,
-                                                Channel_Name,
-                                                PublishedAt,
-                                                Video_Count)
-                                                
-                                                values(%s,%s,%s,%s,%s,%s)'''
-                                                
-                                                
-            values=(row["Playlist_Id"],
-                row["Title"],
-                row["Channel_Id"],
-                row["Channel_Name"],
-                datetime.datetime.strptime(row["PublishedAt"],'%Y-%m-%dT%H:%M:%SZ'),
-                row["Video_Count"])
+    check_table_query = "SHOW TABLES LIKE 'play_list'"
+    cursor.execute(check_table_query)
+    table_exists = cursor.fetchone()
+    
+    if not table_exists:
+        create_query='''create table if not exists play_list(Playlist_Id varchar(100) primary key,
+                                                                Title varchar(100),
+                                                                Channel_Id varchar(100),
+                                                                Channel_Name varchar(100),
+                                                                PublishedAt DATETIME,
+                                                                Video_Count int)'''
+                                                                
+                                                                
+                                                                
+        cursor.execute(create_query)
+        myconnection.commit()
+        #extract data
+        pl_list=[]
+        db=client["youtube_project"]
+        collection=db["chennal_details"]
+        for pl_data in collection.find({},{"_id":0,"playlist_information":1}):
+            for i in range(len(pl_data["playlist_information"])):
+                pl_list.append(pl_data["playlist_information"][i])
             
-            
-            
-            cursor.execute(insert_query,values)
-            myconnection.commit()
+        df1=pd.DataFrame(pl_list)
+        #insering data into sql
+        for index,row in df1.iterrows():
+                insert_query='''insert into play_list(Playlist_Id,
+                                                    Title,
+                                                    Channel_Id,
+                                                    Channel_Name,
+                                                    PublishedAt,
+                                                    Video_Count)
+                                                    
+                                                    values(%s,%s,%s,%s,%s,%s)'''
+                                                    
+                                                    
+                values=(row["Playlist_Id"],
+                    row["Title"],
+                    row["Channel_Id"],
+                    row["Channel_Name"],
+                    datetime.datetime.strptime(row["PublishedAt"],'%Y-%m-%dT%H:%M:%SZ'),
+                    row["Video_Count"])
+                
+                
+                
+                cursor.execute(insert_query,values)
+                myconnection.commit()
             
             
 #CONNECTION TO SQL
@@ -321,54 +325,51 @@ import datetime
 myconnection = pymysql.connect(host='127.0.0.1',user='root',passwd='Navi@1996')
 cursor=myconnection.cursor()
 
-
-myconnection = pymysql.connect(host='127.0.0.1',user='root',passwd='Navi@1996',database='youtube_project')
-cursor=myconnection.cursor()
-
-
 def comment_information():
     myconnection = pymysql.connect(host='127.0.0.1',user='root',passwd='Navi@1996',database='youtube_project')
     cursor=myconnection.cursor()
 
-    drop_query='''drop table if exists comments'''
-    cursor.execute(drop_query)
-    myconnection.commit()
+    check_table_query = "SHOW TABLES LIKE 'comments'"
+    cursor.execute(check_table_query)
+    table_exists = cursor.fetchone()
+    
+    if not table_exists:
 
-    create_query='''create table if not exists comments(Comment_Id varchar(200),
-                                                        Video_Id varchar(300),
-                                                        Comment_Text text,
-                                                        Comment_Author varchar(100),
-                                                        Comment_Published DATETIME)'''
-                                                    
-    cursor.execute(create_query)
-    myconnection.commit()
-
-    cl_list=[]
-    db=client["youtube_project"]
-    collection=db["chennal_details"]
-    for cl_data in collection.find({},{"_id":0,"comment_information":1}):
-        for i in range(len(cl_data["comment_information"])):
-           cl_list.append(cl_data["comment_information"][i])
-        
-    df4=pd.DataFrame(cl_list)
-
-    for index,row in df4.iterrows():
-        
-        insert_query='''insert into comments(Comment_Id,
-                                            Video_Id,
-                                            Comment_Text,
-                                            Comment_Author,
-                                            Comment_Published)
-                                            values(%s,%s,%s,%s,%s)'''
-        values=(row["Comment_Id"],
-            row["Video_Id"],
-            row["Comment_Text"],
-            row["Comment_Author"],
-            datetime.datetime.strptime(row["Comment_Published"],'%Y-%m-%dT%H:%M:%SZ')
-            
-            )
-        cursor.execute(insert_query,values)
+        create_query='''create table if not exists comments(Comment_Id varchar(200),
+                                                            Video_Id varchar(300),
+                                                            Comment_Text text,
+                                                            Comment_Author varchar(100),
+                                                            Comment_Published DATETIME)'''
+                                                        
+        cursor.execute(create_query)
         myconnection.commit()
+
+        cl_list=[]
+        db=client["youtube_project"]
+        collection=db["chennal_details"]
+        for cl_data in collection.find({},{"_id":0,"comment_information":1}):
+            for i in range(len(cl_data["comment_information"])):
+               cl_list.append(cl_data["comment_information"][i])
+            
+        df4=pd.DataFrame(cl_list)
+
+        for index,row in df4.iterrows():
+            
+            insert_query='''insert into comments(Comment_Id,
+                                                Video_Id,
+                                                Comment_Text,
+                                                Comment_Author,
+                                                Comment_Published)
+                                                values(%s,%s,%s,%s,%s)'''
+            values=(row["Comment_Id"],
+                row["Video_Id"],
+                row["Comment_Text"],
+                row["Comment_Author"],
+                datetime.datetime.strptime(row["Comment_Published"],'%Y-%m-%dT%H:%M:%SZ')
+                
+                )
+            cursor.execute(insert_query,values)
+            myconnection.commit()
         
         
 #VIDEO DATA EXTRACT /TABLE CREATION
@@ -378,89 +379,86 @@ import pymysql
 import mysql.connector
 import datetime
 
-myconnection = pymysql.connect(host='127.0.0.1',user='root',passwd='Navi@1996')
-cursor=myconnection.cursor()
-
-
 def video_information():
   myconnection = pymysql.connect(host='127.0.0.1',user='root',passwd='Navi@1996',database='youtube_project')
   cursor=myconnection.cursor()
 
-  drop_query='''drop table if exists video_list'''
-  cursor.execute(drop_query)
-  myconnection.commit()
-
-  create_query='''create table if not exists video_list(Channel_Name varchar(300),
-                                                    Channel_Id varchar(300),
-                                                    Video_Id varchar(300) primary key,
-                                                    Title varchar(100),
-                                                    Thumbnail varchar(250),
-                                                    Comments int,
-                                                    Like_Count int,
-                                                    Dislike_Count int,
-                                                    Faviorite int,
-                                                    Description text,
-                                                    Published_Date DATETIME,
-                                                    Duration varchar(100),
-                                                    Views int,
-                                                    Definition varchar(100),
-                                                    Caption_Status varchar(100))'''
-                                                                                                                      
-                                                  
-  cursor.execute(create_query)
-  myconnection.commit()
-
-  vl_list=[]
-  db=client["youtube_project"]
-  collection=db["chennal_details"]
-  for vl_data in collection.find({},{"_id":0,"video_information":1}):
-      for i in range(len(vl_data["video_information"])):
-         vl_list.append(vl_data["video_information"][i])
-      
-  df5=pd.DataFrame(vl_list)
-
-
+  check_table_query = "SHOW TABLES LIKE 'video_list'"
+  cursor.execute(check_table_query)
+  table_exists = cursor.fetchone()
   
-  for index,row in df5.iterrows():
-      insert_query='''insert into video_list(Channel_Name,
-                                          Channel_Id,
-                                          Video_Id,
-                                          Title,
-                                          Thumbnail,
-                                          Comments,
-                                          Like_Count,
-                                          Dislike_Count,
-                                          Faviorite,
-                                          Description,
-                                          Published_Date,
-                                          Duration,
-                                          Views,
-                                          Definition,
-                                          Caption_Status)
-                                                                                                                      
-                                                  
-                                          
-                                          values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'''
-                                          
-      values=(row["Channel_Name"],
-              row["Channel_Id"],
-              row["Video_Id"],
-              row["Title"],
-              row["Thumbnail"],
-              row["Comments"],
-              row["Like_Count"],
-              row["Dislike_Count"],
-              row["Faviorite"],
-              row["Description"],
-              datetime.datetime.strptime(row["Published_Date"],'%Y-%m-%dT%H:%M:%SZ'),
-              row["Duration"],
-              row["Views"],
-              row["Definition"],
-              row["Caption_Status"])
-      
-      cursor.execute(insert_query,values)
-      myconnection.commit()
-      
+  if not table_exists:
+        create_query='''create table if not exists video_list(Channel_Name varchar(300),
+                                                            Channel_Id varchar(300),
+                                                            Video_Id varchar(300) primary key,
+                                                            Title varchar(100),
+                                                            Thumbnail varchar(250),
+                                                            Comments int,
+                                                            Like_Count int,
+                                                            Dislike_Count int,
+                                                            Faviorite int,
+                                                            Description text,
+                                                            Published_Date DATETIME,
+                                                            Duration varchar(100),
+                                                            Views int,
+                                                            Definition varchar(100),
+                                                            Caption_Status varchar(100))'''
+                                                                                                                            
+                                                        
+        cursor.execute(create_query)
+        myconnection.commit()
+
+        vl_list=[]
+        db=client["youtube_project"]
+        collection=db["chennal_details"]
+        for vl_data in collection.find({},{"_id":0,"video_information":1}):
+            for i in range(len(vl_data["video_information"])):
+                vl_list.append(vl_data["video_information"][i])
+        
+        df5=pd.DataFrame(vl_list)
+
+
+    
+        for index,row in df5.iterrows():
+            insert_query='''insert into video_list(Channel_Name,
+                                                Channel_Id,
+                                                Video_Id,
+                                                Title,
+                                                Thumbnail,
+                                                Comments,
+                                                Like_Count,
+                                                Dislike_Count,
+                                                Faviorite,
+                                                Description,
+                                                Published_Date,
+                                                Duration,
+                                                Views,
+                                                Definition,
+                                                Caption_Status)
+                                                                                                                            
+                                                        
+                                                
+                                                values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'''
+                                                
+            values=(row["Channel_Name"],
+                    row["Channel_Id"],
+                    row["Video_Id"],
+                    row["Title"],
+                    row["Thumbnail"],
+                    row["Comments"],
+                    row["Like_Count"],
+                    row["Dislike_Count"],
+                    row["Faviorite"],
+                    row["Description"],
+                    datetime.datetime.strptime(row["Published_Date"],'%Y-%m-%dT%H:%M:%SZ'),
+                    row["Duration"],
+                    row["Views"],
+                    row["Definition"],
+                    row["Caption_Status"])
+            
+            cursor.execute(insert_query,values)
+            myconnection.commit()
+        
 #FUNCTION OF ALL THE TABLE INFORMATION
 def tables():
     channel_information()
@@ -538,7 +536,7 @@ with st.sidebar:
     st.caption(":black[DATA COLLECTION]")
     st.caption(":black[PYTHON SCRIPTING]")
     st.caption(":black[DATA MANAGEMENT USING MONGO AND SQL]")
-    styles={"backgroundColor": "#C80101"}
+    #styles={"backgroundColor": "#C80101"}
    
  
     

@@ -526,132 +526,159 @@ def show_comment_table():
   
   return df4
 
-
-
 #STREAM LIT
+import streamlit as st
+import pandas as pd
+import pymysql
+from PIL import Image
+
 with st.sidebar:
     st.title(":black[YOUTUBE DATA HARVESTING AND WAREHOUSING]")
-    st.header(":red[SKILLS TAKE AWAY FROM THIS PROJECT]")
-    st.caption(":black[API INTEGRATION]")
-    st.caption(":black[DATA COLLECTION]")
-    st.caption(":black[PYTHON SCRIPTING]")
-    st.caption(":black[DATA MANAGEMENT USING MONGO AND SQL]")
-    #styles={"backgroundColor": "#C80101"}
+    img=Image.open(r'C:\Users\navit\OneDrive\Pictures\IMAGES\youtube.png')
+    st.image(img)
+
+
+def data_collection_page():
+    
+    st.title(":black[EXTRACT DATA and LOADING DATA TO MONGODB and MIGRATED TO SQL]")
    
- 
-    
-    
-channel_id=st.text_input(":green[Enter the channel_Id]")
-if st.button(":green[Collect and Store Data]"):
-    ch_ids=[]
-    db=client["youtube_project"]
-    collection=db["channel_details"]
-    for ch_data in collection.find({},{"_id":0,"channel_information":1}):
-        ch_ids.append(ch_data["channel_information"]["Channel_Id"])
-    if channel_id in ch_ids:
-        st.success("channel details of the given channel id already exists")
-    else:
-        insert=chennal_detail(channel_id)
-        st.success(insert)
+    channel_id=st.text_input(":green[Enter the channel_Id]")
+    style='font-size: 24px'
+    if st.button(":black[Collect and Store Data]"):
+        ch_ids=[]
+        db=client["youtube_project"]
+        collection=db["channel_details"]
+        for ch_data in collection.find({},{"_id":0,"channel_information":1}):
+            ch_ids.append(ch_data["channel_information"]["Channel_Id"])
+        if channel_id in ch_ids:
+            st.success("channel details of the given channel id already exists")
+        else:
+            insert=chennal_detail(channel_id)
+            #st.success(insert)
+        if st.success(insert):
+            img=Image.open(r'C:\Users\navit\OneDrive\Pictures\IMAGES\youtube1.png')
+            st.image(img)
+            
+     if st.button(":green[Migrate of SQL]"):
+        Table=tables()
+        st.success(Table)
+      
+def view_tables_page():
+    st.title(":black[TABLE VIEWS]")
+    show_table=st.radio("select the table for view",("CHANNELS","PLAYLISTS","VIDEOS","COMMENTS"))
+    if show_table=="CHANNELS":
+        show_channel_table()
+    elif show_table=="PLAYLISTS":
+        show_playlist_table()
+    elif show_table=="VIDEOS":
+        show_video_table()
+    elif show_table=="COMMENTS":
+        show_comment_table()
         
-if st.button(":green[Migrate of SQL]"):
-    Table=tables()
-    st.success(Table)
-show_table=st.radio("select the table for view",("CHANNELS","PLAYLISTS","VIDEOS","COMMENTS"))
-if show_table=="CHANNELS":
-    show_channel_table()
-elif show_table=="PLAYLISTS":
-    show_playlist_table()
-elif show_table=="VIDEOS":
-    show_video_table()
-elif show_table=="COMMENTS":
-    show_comment_table()
-    
-#STREAMLIT QUESTIONS FRAMING AND QUERY
 myconnection = pymysql.connect(host='127.0.0.1',user='root',passwd='Navi@1996')
 cursor=myconnection.cursor()
 myconnection = pymysql.connect(host='127.0.0.1',user='root',passwd='Navi@1996',database='youtube_project')
 cursor=myconnection.cursor()
 
-st.write(":green[SELECT ANY QUESTION]")
-questions = ['1. What are the names of all the videos and their corresponding channels?',
-            '2. Which channels have the most number of videos, and how many videos do they have?',
-            '3. What are the top 10 most viewed videos and their respective channels?',
-            '4. How many comments were made on each video, and what are their corresponding video names?',
-            '5. Which videos have the highest number of likes, and what are their corresponding channel names?',
-            '6. What is the total number of likes and dislikes for each video, and what are their corresponding video names?',
-            '7. What is the total number of views for each channel, and what are their corresponding channel names?',
-            '8. What are the names of all the channels that have published videos in the year 2022?',
-            '9. What is the average duration of all videos in each channel, and what are their corresponding channel names?',
-            '10. Which videos have the highest number of comments, and what are their corresponding channel names?']
-choice_ques = st.selectbox('Questions : Click the question that you would like to query',questions)
+
+def query_data_page():
+    st.title(":black[QUERY DATA]")
+    st.write(":green[SELECT ANY QUESTION]")
+    questions = ['1. What are the names of all the videos and their corresponding channels?',
+                '2. Which channels have the most number of videos, and how many videos do they have?',
+                '3. What are the top 10 most viewed videos and their respective channels?',
+                '4. How many comments were made on each video, and what are their corresponding video names?',
+                '5. Which videos have the highest number of likes, and what are their corresponding channel names?',
+                '6. What is the total number of likes and dislikes for each video, and what are their corresponding video names?',
+                '7. What is the total number of views for each channel, and what are their corresponding channel names?',
+                '8. What are the names of all the channels that have published videos in the year 2022?',
+                '9. What is the average duration of all videos in each channel, and what are their corresponding channel names?',
+                '10. Which videos have the highest number of comments, and what are their corresponding channel names?']
+    choice_ques = st.selectbox('Questions : Click the question that you would like to query',questions)
 
 
 
-if choice_ques == questions[0]:
-    df = pd.read_sql_query('''select Title as videos,channel_Name as channelname from video_list''',myconnection)
-    st.write(df)
-    
-elif choice_ques == questions[1]:
-    df = pd.read_sql_query('''select Channel_Name as channel_name,Total_Videos as no_of_videos from channels order by Total_Videos desc''',myconnection)
-    st.write(df)
-  
-    
-elif choice_ques == questions[2]:
-    df = pd.read_sql_query('''select Views as views,Channel_Name as channel_name,Title as video_title from video_list  where Views is not null order by Views desc limit 10''',myconnection)
-    st.write(df)
-    
-elif choice_ques == questions[3]:
-    df = pd.read_sql_query('''select Comments as no_of_comments,Title as video_title from video_list where Comments is not null''',myconnection)
-    st.write(df)
+    if choice_ques == questions[0]:
+        df = pd.read_sql_query('''select Title as videos,channel_Name as channelname from video_list''',myconnection)
+        st.write(df)
         
-elif choice_ques == questions[4]:
-    df = pd.read_sql_query('''select Title as video_title,Channel_Name as channel_name, Like_Count as likes from video_list where Like_Count is not null order by Like_Count desc''',myconnection)
-    st.write(df)
+    elif choice_ques == questions[1]:
+        df = pd.read_sql_query('''select Channel_Name as channel_name,Total_Videos as no_of_videos from channels order by Total_Videos desc''',myconnection)
+        st.write(df)
     
-elif choice_ques == questions[5]:
-    df = pd.read_sql_query('''select Like_Count as like_count,Dislike_Count as dislike_count,Title as video_title from video_list''',myconnection)
-    st.write(df)
- 
         
-elif choice_ques == questions[6]:
-    df = pd.read_sql_query('''select Views as views,Channel_Name as channel_name from video_list''',myconnection)
-    st.write(df)
+    elif choice_ques == questions[2]:
+        df = pd.read_sql_query('''select Views as views,Channel_Name as channel_name,Title as video_title from video_list  where Views is not null order by Views desc limit 10''',myconnection)
+        st.write(df)
+        
+    elif choice_ques == questions[3]:
+        df = pd.read_sql_query('''select Comments as no_of_comments,Title as video_title from video_list where Comments is not null''',myconnection)
+        st.write(df)
+            
+    elif choice_ques == questions[4]:
+        df = pd.read_sql_query('''select Title as video_title,Channel_Name as channel_name, Like_Count as likes from video_list where Like_Count is not null order by Like_Count desc''',myconnection)
+        st.write(df)
+        
+    elif choice_ques == questions[5]:
+        df = pd.read_sql_query('''select Like_Count as like_count,Dislike_Count as dislike_count,Title as video_title from video_list''',myconnection)
+        st.write(df)
     
-elif choice_ques == questions[7]:
-    df = pd.read_sql_query('''select Title as video_title,Published_Date as published_date,Channel_Name as channel_name from video_list 
-            where extract(year from Published_Date)=2022''',myconnection)
-    st.write(df)
+            
+    elif choice_ques == questions[6]:
+        df = pd.read_sql_query('''select Views as views,Channel_Name as channel_name from video_list''',myconnection)
+        st.write(df)
+        
+    elif choice_ques == questions[7]:
+        df = pd.read_sql_query('''select Title as video_title,Published_Date as published_date,Channel_Name as channel_name from video_list 
+                where extract(year from Published_Date)=2022''',myconnection)
+        st.write(df)
 
-elif choice_ques == questions[8]:
-    df = pd.read_sql_query("""SELECT Channel_Name, 
-                    SUM(duration_sec) / COUNT(*) AS average_duration
-                    FROM (
-                        SELECT Channel_Name, 
-                        CASE
-                            WHEN Duration REGEXP '^PT[0-9]+H[0-9]+M[0-9]+S$' THEN 
-                            TIME_TO_SEC(CONCAT(
-                            SUBSTRING_INDEX(SUBSTRING_INDEX(Duration, 'H', 1), 'T', -1), ':',
-                        SUBSTRING_INDEX(SUBSTRING_INDEX(Duration, 'M', 1), 'H', -1), ':',
-                        SUBSTRING_INDEX(SUBSTRING_INDEX(Duration, 'S', 1), 'M', -1)
-                        ))
-                            WHEN Duration REGEXP '^PT[0-9]+M[0-9]+S$' THEN 
-                            TIME_TO_SEC(CONCAT(
-                            '0:', SUBSTRING_INDEX(SUBSTRING_INDEX(Duration, 'M', 1), 'T', -1), ':',
+    elif choice_ques == questions[8]:
+        df = pd.read_sql_query("""SELECT Channel_Name, 
+                        SUM(duration_sec) / COUNT(*) AS average_duration
+                        FROM (
+                            SELECT Channel_Name, 
+                            CASE
+                                WHEN Duration REGEXP '^PT[0-9]+H[0-9]+M[0-9]+S$' THEN 
+                                TIME_TO_SEC(CONCAT(
+                                SUBSTRING_INDEX(SUBSTRING_INDEX(Duration, 'H', 1), 'T', -1), ':',
+                            SUBSTRING_INDEX(SUBSTRING_INDEX(Duration, 'M', 1), 'H', -1), ':',
                             SUBSTRING_INDEX(SUBSTRING_INDEX(Duration, 'S', 1), 'M', -1)
-                        ))
-                            WHEN Duration REGEXP '^PT[0-9]+S$' THEN 
-                            TIME_TO_SEC(CONCAT('0:0:', SUBSTRING_INDEX(SUBSTRING_INDEX(duration, 'S', 1), 'T', -1)))
-                            END AS duration_sec
-                    FROM video_list
-                    ) AS subquery
-                    GROUP BY Channel_Name""",myconnection)
-    st.write(df)
-   
-elif choice_ques == questions[9]:
-    df = pd.read_sql_query('''select Title as video_title,Comments as comments,Channel_Name as channel_name from video_list where Comments is not null order by Comments desc''',myconnection)
-    st.write(df) 
+                            ))
+                                WHEN Duration REGEXP '^PT[0-9]+M[0-9]+S$' THEN 
+                                TIME_TO_SEC(CONCAT(
+                                '0:', SUBSTRING_INDEX(SUBSTRING_INDEX(Duration, 'M', 1), 'T', -1), ':',
+                                SUBSTRING_INDEX(SUBSTRING_INDEX(Duration, 'S', 1), 'M', -1)
+                            ))
+                                WHEN Duration REGEXP '^PT[0-9]+S$' THEN 
+                                TIME_TO_SEC(CONCAT('0:0:', SUBSTRING_INDEX(SUBSTRING_INDEX(duration, 'S', 1), 'T', -1)))
+                                END AS duration_sec
+                        FROM video_list
+                        ) AS subquery
+                        GROUP BY Channel_Name""",myconnection)
+        st.write(df)
     
-    
+    elif choice_ques == questions[9]:
+        df = pd.read_sql_query('''select Title as video_title,Comments as comments,Channel_Name as channel_name from video_list where Comments is not null order by Comments desc''',myconnection)
+        st.write(df) 
+        
 
-   
+
+
+def main():
+    page = st.sidebar.selectbox("", ["DATA COLLECTION", "VIEW TABLES", "QUERY DATA"])
+  
+
+    if page == "DATA COLLECTION":
+        data_collection_page()
+    elif page == "VIEW TABLES":
+        view_tables_page()
+    elif page == "QUERY DATA":
+        query_data_page()
+
+if __name__ == "__main__":
+    main()
+
+
+
+
